@@ -125,7 +125,7 @@ const build = await sandbox.startProcess('npm run build', {
     console.log(`Build finished with exit code ${exitCode}`);
   },
   onError: (error) => {
-    console.error(`Build error: ${error.message}`);
+    console.error(`Build error: ${error.message}`)
   }
 });
 ```

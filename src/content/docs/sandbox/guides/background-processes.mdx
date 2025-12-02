@@ -120,9 +120,40 @@ const isRunning = processes.some(p => p.id === processId && p.status === 'runnin
 ```
 </TypeScriptExample>
 
-## Monitor process logs
+## Monitor process output
 
-Stream logs in real-time to detect when a service is ready:
+### Using callbacks
+
+Use callbacks to handle output in real-time without manually managing streams:
+
+<TypeScriptExample>
+```
+const server = await sandbox.startProcess('node server.js', {
+  onStart: (process) => {
+    console.log(`Server started with PID: ${process.pid}`);
+  },
+  onOutput: (stream, data) => {
+    console.log(`[${stream}] ${data}`);
+
+    if (data.includes('Server listening')) {
+      console.log('Server is ready!');
+    }
+  },
+  onExit: (exitCode) => {
+    console.log(`Server exited with code: ${exitCode}`);
+  },
+  onError: (error) => {
+    console.error('Streaming error:', error);
+  }
+});
+
+// Your code continues - callbacks handle output in the background
+```
+</TypeScriptExample>
+
+### Using streams
+
+Stream logs in real-time with manual stream handling:
 
 <TypeScriptExample>
 ```
@@ -144,10 +175,17 @@ for await (const log of parseSSEStream<LogEvent>(logStream)) {
 ```
 </TypeScriptExample>
 
-Or get accumulated logs:
+### Using accumulated logs
+
+Get all accumulated logs at once:
 
 <TypeScriptExample>
 ```
+const server = await sandbox.startProcess('echo "Hello, World!"');
+
+// Wait briefly for fast commands to complete
+await new Promise(resolve => setTimeout(resolve, 100));
+
 const logs = await sandbox.getProcessLogs(server.id);
 console.log('Logs:', logs);
 ```
