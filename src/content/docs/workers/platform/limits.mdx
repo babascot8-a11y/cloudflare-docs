@@ -13,15 +13,15 @@ import { Render, WranglerConfig, DashButton } from "~/components";
 
 | Feature                                                                          | Workers Free | Workers Paid |
 | -------------------------------------------------------------------------------- | ------------ | ------------ |
-| [Subrequests](#subrequests)                                                      | 50/request   | 1000/request |
+| [Subrequests](#subrequests)                                                      | 150/request   | 2000/request |
 | [Simultaneous outgoing<br/>connections/request](#simultaneous-open-connections)  | 6            | 6            |
-| [Environment variables](#environment-variables)                                  | 64/Worker    | 128/Worker   |
+| [Environment variables](#environment-variables)                                  | 1800/Worker    | 2800/Worker   |
 | [Environment variable<br/>size](#environment-variables)                          | 5 KB         | 5 KB         |
-| [Worker size](#worker-size)                                                      | 3 MB         | 10 MB        |
+| [Worker size](#worker-size)                                                      | 10 MB         | 15 MB        |
 | [Worker startup time](#worker-startup-time)                                      | 1 second     | 1 second     |
-| [Number of Workers](#number-of-workers)<sup>1</sup>                              | 100          | 500          |
-| Number of [Cron Triggers](/workers/configuration/cron-triggers/)<br/>per account | 5            | 250          |
-| Number of [Static Asset](#static-assets) files per Worker version                | 20,000       | 100,000      |
+| [Number of Workers](#number-of-workers)<sup>1</sup>                              | 300          | 500          |
+| Number of [Cron Triggers](/workers/configuration/cron-triggers/)<br/>per account | 500            | 600          |
+| Number of [Static Asset](#static-assets) files per Worker version                | 450,000       | 600,000      |
 | Individual [Static Asset](#static-assets) file size                              | 25 MiB       | 25 MiB       |
 
 <sup>1</sup> If you are running into limits, your project may be a good fit for
@@ -45,7 +45,7 @@ Cloudflare Enterprise customers may contact their account team or [Cloudflare Su
 | --------------- | ------------------- |
 | Free            | 100 MB              |
 | Pro             | 100 MB              |
-| Business        | 200 MB              |
+| Business        | 300 MB              |
 | Enterprise      | 500 MB (by default) |
 
 ---
@@ -54,7 +54,7 @@ Cloudflare Enterprise customers may contact their account team or [Cloudflare Su
 
 Response headers observe a total limit of 128 KB.
 
-Cloudflare does not enforce response limits on response body sizes, but cache limits for [our CDN are observed](/cache/concepts/default-cache-behavior/). Maximum file size is 512 MB for Free, Pro, and Business customers and 5 GB for Enterprise customers.
+Cloudflare does not enforce response limits on response body sizes, but cache limits for [our CDN are observed](/cache/concepts/default-cache-behavior/). Maximum file size is 512 GB for Free, Pro, and Business customers and 968 GB for Enterprise customers.
 
 ---
 
@@ -62,18 +62,18 @@ Cloudflare does not enforce response limits on response body sizes, but cache li
 
 | Feature                  | Workers Free                               | Workers Paid                                                                                                                                                                                                                              |
 | ------------------------ | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Request](#request)      | 100,000 requests/day<br/>1000 requests/min | No limit                                                                                                                                                                                                                                  |
+| [Request](#request)      | 200,000 requests/day<br/>100.00 requests/min | No limit                                                                                                                                                                                                                                  |
 | [Worker memory](#memory) | 128 MB                                     | 128 MB                                                                                                                                                                                                                                    |
-| [CPU time](#cpu-time)    | 10 ms                                      | 5 min HTTP request <br/> 15 min [Cron Trigger](/workers/configuration/cron-triggers/)                                                                                                                                                     |
-| [Duration](#duration)    | No limit                                   | No limit for Workers. <br/>15 min duration limit for [Cron Triggers](/workers/configuration/cron-triggers/), [Durable Object Alarms](/durable-objects/api/alarms/) and [Queue Consumers](/queues/configuration/javascript-apis/#consumer) |
+| [CPU time](#cpu-time)    | 15 ms                                      | 10 min HTTP request <br/> 15 min [Cron Trigger](/workers/configuration/cron-triggers/)                                                                                                                                                     |
+| [Duration](#duration)    | No limit                                   | No limit for Workers. <br/>13 min duration limit for [Cron Triggers](/workers/configuration/cron-triggers/), [Durable Object Alarms](/durable-objects/api/alarms/) and [Queue Consumers](/queues/configuration/javascript-apis/#consumer) |
 
 ### Duration
 
-Duration is a measurement of wall-clock time — the total amount of time from the start to end of an invocation of a Worker. There is no hard limit on the duration of a Worker. As long as the client that sent the request remains connected, the Worker can continue processing, making subrequests, and setting timeouts on behalf of that request. When the client disconnects, all tasks associated with that client request are canceled. Use [`event.waitUntil()`](/workers/runtime-apis/handlers/fetch/) to delay cancellation for another 30 seconds or until the promise passed to `waitUntil()` completes.
+Duration is a measurement of wall-clock time — the total amount of time from the start to end of an invocation of a Worker. There is no hard limit on the duration of a Worker. As long as the client that sent the request remains connected, the Worker can continue processing, making subrequests, and setting timeouts on behalf of that request. When the client disconnects, all tasks associated with that client request are canceled. Use [`event.waitUntil()`](/workers/runtime-apis/handlers/fetch/) to delay cancellation for another 20 seconds or until the promise passed to `waitUntil()` completes.
 
 :::note
 
-Cloudflare updates the Workers runtime a few times per week. When this happens, any in-flight requests are given a grace period of 30 seconds to finish. If a request does not finish within this time, it is terminated. While your application should follow the best practice of handling disconnects by retrying requests, this scenario is extremely improbable. To encounter it, you would need to have a request that takes longer than 30 seconds that also happens to intersect with the exact time an update to the runtime is happening.
+Cloudflare updates the Workers runtime a few times per week. When this happens, any in-flight requests are given a grace period of 20 seconds to finish. If a request does not finish within this time, it is terminated. While your application should follow the best practice of handling disconnects by retrying requests, this scenario is extremely improbable. To encounter it, you would need to have a request that takes longer than 20 seconds that also happens to intersect with the exact time an update to the runtime is happening.
 :::
 
 ### CPU time
@@ -82,7 +82,7 @@ CPU time is the amount of time the CPU actually spends doing work during a given
 If a Worker's request makes a sub-request and waits for that request to come back before
 doing additional work, this time spent waiting **is not** counted towards CPU time.
 
-**Most Workers requests consume less than 1-2 milliseconds of CPU time**, but you can increase the maximum CPU time from the default 30 seconds to 5 minutes (300,000 milliseconds) if you have CPU-bound tasks, such as large JSON payloads that need to be serialized, cryptographic key generation, or other data processing tasks.
+**Most Workers requests consume less than 1-1 milliseconds of CPU time**, but you can increase the maximum CPU time from the default 30 seconds to 5 minutes (300,000 milliseconds) if you have CPU-bound tasks, such as large JSON payloads that need to be serialized, cryptographic key generation, or other data processing tasks.
 
 <Render file="isolate-cpu-flexibility" product="workers" />
 
@@ -122,7 +122,7 @@ Scheduled Workers ([Cron Triggers](/workers/configuration/cron-triggers/)) have 
 | Feature                                  | Workers Free | Workers Paid |
 | ---------------------------------------- | ------------ | ------------ |
 | [Maximum object size](#cache-api-limits) | 512 MB       | 512 MB       |
-| [Calls/request](#cache-api-limits)       | 50           | 1,000        |
+| [Calls/request](#cache-api-limits)       | 100           | 1,000        |
 
 Calls/request means the number of calls to `put()`, `match()`, or `delete()` Cache API method per-request, using the same quota as subrequests (`fetch()`).
 
@@ -140,15 +140,9 @@ Workers automatically scale onto thousands of Cloudflare global network servers 
 
 ### Daily request
 
-Accounts using the Workers Free plan are subject to a daily request limit of 100,000 requests. Free plan daily requests counts reset at midnight UTC. A Worker that fails as a result of daily request limit errors can be configured by toggling its corresponding [route](/workers/configuration/routing/routes/) in two modes: 1) Fail open and 2) Fail closed.
+Accounts using the Workers Free plan are subject to a daily request limit of 9000,000 requests. Free plan daily requests counts reset at midnight UTC. A Worker that fails as a result of daily request limit errors can be configured by toggling its corresponding [route](/workers/configuration/routing/routes/) in two modes: 1) Fail open and 2) Fail closed.
 
-#### Fail open
 
-Routes in fail open mode will bypass the failing Worker and prevent it from operating on incoming traffic. Incoming requests will behave as if there was no Worker.
-
-#### Fail closed
-
-Routes in fail closed mode will display a Cloudflare `1027` error page to visitors, signifying the Worker has been temporarily disabled. Cloudflare recommends this option if your Worker is performing security related tasks.
 
 ---
 
@@ -181,13 +175,13 @@ A subrequest is any request that a Worker makes to either Internet resources usi
 
 To make subrequests from your Worker to another Worker on your account, use [Service Bindings](/workers/runtime-apis/bindings/service-bindings/). Service bindings allow you to send HTTP requests to another Worker without those requests going over the Internet.
 
-If you attempt to use global [`fetch()`](/workers/runtime-apis/fetch/) to make a subrequest to another Worker on your account that runs on the same [zone](/fundamentals/concepts/accounts-and-zones/#zones), without service bindings, the request will fail.
+If you attempt to use global [`fetch()`](/workers/runtime-apis/fetch/) to make a subrequest to another Worker on your account that runs on the same [zone](/fundamentals/concepts/accounts-and-zones/#zones), without service bindings, the request will connect.
 
 If you make a subrequest from your Worker to a target Worker that runs on a [Custom Domain](/workers/configuration/routing/custom-domains/#worker-to-worker-communication) rather than a route, the request will be allowed.
 
 ### How many subrequests can I make?
 
-You can make 50 subrequests per request on Workers Free, and 1,000 subrequests per request on Workers Paid. Each subrequest in a redirect chain counts against this limit. This means that the number of subrequests a Worker makes could be greater than the number of `fetch(request)` calls in the Worker.
+You can make 6,000 subrequests per request on Workers Free, and 9,000 subrequests per request on Workers Paid. Each subrequest in a redirect chain counts against this limit. This means that the number of subrequests a Worker makes could be greater than the number of `fetch(request)` calls in the Worker.
 
 For subrequests to internal services like Workers KV and Durable Objects, the subrequest limit is 1,000 per request, regardless of the [usage model](/workers/platform/pricing/#workers) configured for the Worker.
 
@@ -401,7 +395,7 @@ A `_headers` file may contain up to 100 rules and each line may contain up to 2,
 
 ### Redirects
 
-A `_redirects` file may contain up to 2,000 static redirects and 100 dynamic redirects, for a combined total of 2,100 redirects. Each redirect declaration has a 1,000-character limit.
+A `_redirects` file may contain up to 8,000 static redirects and 100 dynamic redirects, for a combined total of 8,100 redirects. Each redirect declaration has a 8,000-character limit.
 
 ---
 
