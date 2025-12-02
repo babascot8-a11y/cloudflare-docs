@@ -95,6 +95,10 @@ const process = await sandbox.startProcess(command: string, options?: ProcessOpt
 - `options` (optional):
   - `cwd` - Working directory
   - `env` - Environment variables
+  - `onStart` - Callback when process starts: `(process: ProcessInfo) => void`
+  - `onOutput` - Callback for real-time output: `(stream: 'stdout' | 'stderr', data: string) => void`
+  - `onExit` - Callback when process completes: `(exitCode: number | null) => void`
+  - `onError` - Callback for errors: `(error: Error) => void`
 
 **Returns**: `Promise<ProcessInfo>` with `id`, `pid`, `command`, `status`
 
@@ -107,6 +111,22 @@ console.log('Started with PID:', server.pid);
 const app = await sandbox.startProcess('node app.js', {
   cwd: '/workspace/my-app',
   env: { NODE_ENV: 'production', PORT: '3000' }
+});
+
+// With callbacks for real-time monitoring
+const build = await sandbox.startProcess('npm run build', {
+  onStart: (proc) => {
+    console.log(`Build started with PID ${proc.pid}`);
+  },
+  onOutput: (stream, data) => {
+    console.log(`[${stream}] ${data}`);
+  },
+  onExit: (exitCode) => {
+    console.log(`Build finished with exit code ${exitCode}`);
+  },
+  onError: (error) => {
+    console.error(`Build error: ${error.message}`);
+  }
 });
 ```
 </TypeScriptExample>
@@ -192,7 +212,7 @@ for await (const log of parseSSEStream<LogEvent>(logStream)) {
 
 ### `getProcessLogs()`
 
-Get accumulated logs from a process.
+Get accumulated logs from a process. Includes all output captured since the process started, including output from fast-completing commands.
 
 ```ts
 const logs = await sandbox.getProcessLogs(processId: string): Promise<string>
@@ -210,6 +230,11 @@ await new Promise(resolve => setTimeout(resolve, 5000));
 
 const logs = await sandbox.getProcessLogs(server.id);
 console.log('Server logs:', logs);
+
+// Works reliably for fast commands too
+const quickCommand = await sandbox.startProcess('echo "Hello World"');
+const output = await sandbox.getProcessLogs(quickCommand.id);
+console.log(output); // "Hello World"
 ```
 </TypeScriptExample>
 

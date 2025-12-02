@@ -64,6 +64,43 @@ console.log('API server started');
 ```
 </TypeScriptExample>
 
+## Monitor with callbacks
+
+Use callbacks for real-time process monitoring without manually streaming logs:
+
+<TypeScriptExample>
+```
+const process = await sandbox.startProcess('npm run build', {
+  onStart: (proc) => {
+    console.log(`Build started with PID ${proc.pid}`);
+  },
+  onOutput: (stream, data) => {
+    // Handle output in real-time as it's produced
+    if (stream === 'stdout') {
+      console.log(data);
+    } else {
+      console.error(data);
+    }
+  },
+  onExit: (exitCode) => {
+    if (exitCode === 0) {
+      console.log('Build completed successfully');
+    } else {
+      console.error(`Build failed with exit code ${exitCode}`);
+    }
+  },
+  onError: (error) => {
+    console.error(`Build error: ${error.message}`);
+  }
+});
+
+// Process monitoring happens in background
+// Your code continues immediately
+```
+</TypeScriptExample>
+
+Callbacks are useful when you need to react to process events without blocking your Worker execution or manually managing log streams.
+
 ## Monitor process status
 
 List and check running processes:
